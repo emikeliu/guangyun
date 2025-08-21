@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<meta charset="utf-8"/>
+<html>
+    <head>
+        <title>廣韻查詢</title>
+        <script src="script/kwang-un.js"></script>
+        <script src="script/opencc.js"></script>
+
+        <script>
+            const converter = OpenCC.Converter({ from: 'cn', to: 'hk' })
+            window.onload=()=>{
+            document.getElementById("submit").addEventListener("click", (event)=>{
+                document.getElementById("result").innerHTML=""
+                const hj = converter(document.getElementById("hanja").value)
+                console.log(hj)
+                const every_hanja = hj.split("")
+                console.log(every_hanja)
+                for (let hanja of every_hanja) {
+                    if (hanja in kwang_un) {
+                    const current = kwang_un[hanja]
+                    document.getElementById("result").innerHTML+=`<h2>${hanja}</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>組</td><td>紐</td><td>重紐</td><td>韻</td><td>攝</td><td>呼</td><td>等</td><td>聲</td><td>四呼</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>${current["组"]}</td>
+                                    <td>${current["纽"]}</td>
+                                    <td>${current["重纽"]}</td>
+                                    <td>${current["韵"]}</td>
+                                    <td>${current["摄"]}</td>
+                                    <td>${current["呼"]}</td>
+                                    <td>${current["等"]}</td>
+                                    <td>${current["声"]}</td>
+                                    <td>${current["四呼"]}</td>
+
+                            </tbody>
+                        </table>
+                        `
+                } else {
+                    alert("没有找到："+converter(hanja))
+                }
+                }
+                
+                
+            })}
+        </script>
+
+    </head>
+    <body>
+
+        <h1>廣韻查詢</h1>
+        <div>
+            <span>
+                請輸入漢字：
+            </span>
+            <input type="text" id="hanja" name="hanja"/>
+            <button id="submit">查詢</button>
+        </div>
+        <div id="result" >
+
+        </div>
+
+
+    </body>
+</html>
