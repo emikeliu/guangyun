@@ -1,69 +1,113 @@
 <!DOCTYPE html>
-<meta charset="utf-8"/>
-<html>
-    <head>
-        <title>廣韻查詢</title>
-        <script src="script/kwang-un.js"></script>
-        <script src="script/opencc.js"></script>
-
-        <script>
-            const converter = OpenCC.Converter({ from: 'cn', to: 'hk' })
-            window.onload=()=>{
-            document.getElementById("submit").addEventListener("click", (event)=>{
-                document.getElementById("result").innerHTML=""
-                const hj = converter(document.getElementById("hanja").value)
-                console.log(hj)
-                const every_hanja = hj.split("")
-                console.log(every_hanja)
-                for (let hanja of every_hanja) {
-                    if (hanja in kwang_un) {
-                    const current = kwang_un[hanja]
-                    document.getElementById("result").innerHTML+=`<h2>${hanja}</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>組</td><td>紐</td><td>重紐</td><td>韻</td><td>攝</td><td>呼</td><td>等</td><td>聲</td><td>四呼</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>${current["组"]}</td>
-                                    <td>${current["纽"]}</td>
-                                    <td>${current["重纽"]}</td>
-                                    <td>${current["韵"]}</td>
-                                    <td>${current["摄"]}</td>
-                                    <td>${current["呼"]}</td>
-                                    <td>${current["等"]}</td>
-                                    <td>${current["声"]}</td>
-                                    <td>${current["四呼"]}</td>
-
-                            </tbody>
-                        </table>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廣韻查詢</title>
+    <script src="script/opencc.js"></script>
+    <script src="script/si_hu_converter.js"></script>
+    <script src="script/kwang-un-pinyin.js"></script>
+    <script src="script/kwang-un-new.js"></script>
+</head>
+<body>
+    <h1>廣韻查詢</h1>
+    <div>
+        <span>輸入漢字：</span>
+        <input type="text" id="hanja" name="hanja">
+        <button id="submit">查詢</button>
+    </div>
+    <div id="result">
+    </div>
+    <script>
+        const converter = OpenCC.Converter({ from: 'cn', to: 'hk' })
+        
+        document.getElementById("submit").addEventListener("click", (event)=>{
+            document.getElementById("result").innerHTML=""
+            const hj = converter(document.getElementById("hanja").value)
+            console.log(hj)
+            const every_hanja = hj.split("")
+            console.log(every_hanja)
+            
+            for (let hanja of every_hanja) {
+                if (hanja in kwang_un) {
+                    const pronunciations = kwang_un[hanja]
+                    
+                    if (Array.isArray(pronunciations)) {
+                        // 多音字处理
+                        pronunciations.forEach((pron, index) => {
+                            const siHu = calculateSiHu(
+                                pron['等'],
+                                pron['呼'],
+                                pron['纽'],
+                                pron['韵'],
+                                pron['摄']
+                            )
+                            const pinyin = getKwangUnPinyin(pron)
+                            
+                            document.getElementById("result").innerHTML+=`
+                                <div class="pronunciation-item">
+                                    <h3>${hanja} <small>发音 ${index + 1}</small> <small class="pinyin">[${pinyin}]</small></h3>
+                                    <table>
+                                        <tr>
+                                            <td>組</td><td>紐</td><td>重紐</td><td>韻</td><td>攝</td><td>呼</td><td>等</td><td>聲</td><td>四呼</td>
+                                        </tr>
+                                        <tbody>
+                                            <tr>
+                                                <td>${pron['组']}</td>
+                                                <td>${pron['纽']}</td>
+                                                <td>${pron['重纽'] || ''}</td>
+                                                <td>${pron['韵']}</td>
+                                                <td>${pron['摄']}</td>
+                                                <td>${pron['呼']}</td>
+                                                <td>${pron['等']}</td>
+                                                <td>${pron['声']}</td>
+                                                <td><span class="sihu">${siHu}</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `
+                        })
+                    } else {
+                        // 单音字处理（向后兼容旧格式）
+                        const siHu = calculateSiHu(
+                            pronunciations['等'],
+                            pronunciations['呼'],
+                            pronunciations['纽'],
+                            pronunciations['韵'],
+                            pronunciations['摄']
+                        )
+                        const pinyin = getKwangUnPinyin(pronunciations)
+                        
+                        document.getElementById("result").innerHTML+=`
+                            <div class="pronunciation-item">
+                                <h3>${hanja} <small class="pinyin">[${pinyin}]</small></h3>
+                                <table>
+                                    <tr>
+                                        <td>組</td><td>紐</td><td>重紐</td><td>韻</td><td>攝</td><td>呼</td><td>等</td><td>聲</td><td>四呼</td>
+                                    </tr>
+                                    <tbody>
+                                        <tr>
+                                            <td>${pronunciations['组']}</td>
+                                            <td>${pronunciations['纽']}</td>
+                                            <td>${pronunciations['重纽'] || ''}</td>
+                                            <td>${pronunciations['韵']}</td>
+                                            <td>${pronunciations['摄']}</td>
+                                            <td>${pronunciations['呼']}</td>
+                                            <td>${pronunciations['等']}</td>
+                                            <td>${pronunciations['声']}</td>
+                                            <td><span class="sihu">${siHu}</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         `
+                    }
                 } else {
                     alert("没有找到："+converter(hanja))
                 }
-                }
-                
-                
-            })}
-        </script>
-
-    </head>
-    <body>
-
-        <h1>廣韻查詢</h1>
-        <div>
-            <span>
-                請輸入漢字：
-            </span>
-            <input type="text" id="hanja" name="hanja"/>
-            <button id="submit">查詢</button>
-        </div>
-        <div id="result" >
-
-        </div>
-
-
-    </body>
+            }
+        })
+    </script>
+</body>
 </html>
